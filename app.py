@@ -193,12 +193,12 @@ def get_team_code_map():
 
 team_code_map = get_team_code_map()
 
-# โหลดข้อมูลนักเตะ
+# โหลดข้อมูลนักเตะ (ใช้ 7 คอลัมน์เดิมที่มีในฐานข้อมูล)
 @st.cache_data
 def load_data():
     conn = sqlite3.connect('fpl_data.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT player_id, first_name, second_name, team_id, element_type, now_cost, ep_next, web_name FROM Players")
+    cursor.execute("SELECT player_id, first_name, second_name, team_id, element_type, now_cost, ep_next FROM Players")
     data = cursor.fetchall()
     conn.close()
     return data
@@ -258,12 +258,11 @@ with tab1:
                     is_c = pulp.value(cap[p[0]]) == 1
                     total_cost += p[5]
                     t_code = team_code_map.get(p[3], 1)
-                    # รหัสเสื้อผู้รักษาประตูลงท้าย _1 เสื้อปกติลงท้าย _0
                     shirt_type = "1" if p[4] == 1 else "0"
                     shirt_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{t_code}_{shirt_type}-66.webp"
                     
                     p_info = {
-                        "name": p[7] if len(p) > 7 and p[7] else p[2], # ชื่อย่อบนเสื้อ (Web Name)
+                        "name": p[2], # ใช้นามสกุล/ชื่อหลักเป็นชื่อบนเสื้อ
                         "cost": p[5] / 10,
                         "xp": float(p[6]),
                         "is_cap": is_c,
@@ -286,7 +285,6 @@ with tab1:
             m2.metric("⭐ xP คาดหวังรวม", f"{total_xp:.2f}")
             m3.metric("⚽ แผนการเล่น", f"{len(starting_def)}-{len(starting_mid)}-{len(starting_fwd)}")
             
-            # ฟังก์ชันประกอบ HTML การ์ดนักเตะพร้อมเสื้อแข่ง
             def render_fpl_cards(players):
                 items = ""
                 for p in players:
