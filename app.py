@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# สไตล์ CSS ถอดแบบ Official FPL Match Engine
+# สไตล์ CSS ถอดแบบ Official FPL
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
@@ -41,7 +41,7 @@ st.markdown("""
         color: #00ff87;
     }
 
-    /* ผืนสนาม FPL (Vector Pitch) */
+    /* ผืนสนาม FPL */
     .fpl-pitch-wrapper {
         background: #00a651;
         border-radius: 16px;
@@ -54,7 +54,6 @@ st.markdown("""
         border: 2px solid #008741;
     }
 
-    /* แบนเนอร์หัวสนามด้านบน */
     .fpl-pitch-top-banner {
         background: #02efff;
         color: #38003c;
@@ -64,10 +63,8 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        letter-spacing: 0.5px;
     }
 
-    /* ลวดลายเส้นสนาม */
     .fpl-pitch-body {
         background-image: 
             linear-gradient(to bottom, rgba(255,255,255,0.2) 2px, transparent 2px),
@@ -85,7 +82,7 @@ st.markdown("""
         width: 100%;
     }
 
-    /* กล่องการ์ดนักเตะสไตล์ FPL */
+    /* การ์ดนักเตะบนสนาม */
     .fpl-player-container {
         display: flex;
         flex-direction: column;
@@ -130,7 +127,6 @@ st.markdown("""
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     .fpl-score-tag {
@@ -142,10 +138,8 @@ st.markdown("""
         border-radius: 0 0 4px 4px;
         text-align: center;
         width: 100%;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    /* กล่องม้านั่งสำรอง */
     .fpl-bench-wrapper {
         background: rgba(4, 88, 43, 0.95);
         border: 1px solid rgba(255,255,255,0.2);
@@ -153,12 +147,47 @@ st.markdown("""
         padding: 12px;
         margin: 15px 12px 0 12px;
     }
-    .fpl-bench-title {
-        text-align: center;
+
+    /* การ์ดแนะนำการเปลี่ยนตัว (Transfer Cards) */
+    .deal-card {
+        background: #1e0024;
+        border: 1px solid #3c004a;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .deal-player-side {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 38%;
+    }
+    .deal-shirt {
+        width: 46px;
+        height: 52px;
+        object-fit: contain;
+    }
+    .deal-arrow {
+        font-size: 1.5rem;
+        color: #00ff87;
         font-weight: 700;
+        text-align: center;
+        width: 8%;
+    }
+    .deal-gain {
+        background: rgba(0, 255, 135, 0.15);
+        border: 1px solid #00ff87;
+        color: #00ff87;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 20px;
         font-size: 0.9rem;
-        color: #ffffff;
-        margin-bottom: 8px;
+        text-align: center;
+        white-space: nowrap;
     }
 
     div.stButton > button {
@@ -184,7 +213,6 @@ st.markdown("""
 
 st.markdown("""<div class="pl-nav"><div class="pl-nav-logo">🦁 Fantasy Premier League</div><div style="font-weight:600; color:#00ff87;">AI Squad Hub</div></div>""", unsafe_allow_html=True)
 
-# ดึงรหัสทีมสำหรับรูปชุดแข่ง
 @st.cache_data
 def get_team_code_map():
     url = "https://fantasy.premierleague.com/api/bootstrap-static/"
@@ -193,7 +221,6 @@ def get_team_code_map():
 
 team_code_map = get_team_code_map()
 
-# โหลดข้อมูลนักเตะ
 @st.cache_data
 def load_data():
     conn = sqlite3.connect('fpl_data.db')
@@ -209,7 +236,7 @@ active_players = [p for p in all_players if float(p[6]) > 0]
 tab1, tab2 = st.tabs(["🏟️ สนามแข่งขันจำลอง (Pitch View)", "🔄 ผู้ช่วยเปลี่ยนตัว (Transfer Advisor)"])
 
 # ==========================================
-# แท็บที่ 1: สนามฟุตบอลสไตล์ Official FPL
+# แท็บที่ 1: สนามฟุตบอลจำลอง
 # ==========================================
 with tab1:
     col_c1, col_c2 = st.columns([1, 1])
@@ -258,8 +285,6 @@ with tab1:
                     is_c = pulp.value(cap[p[0]]) == 1
                     total_cost += p[5]
                     t_code = team_code_map.get(p[3], 1)
-                    
-                    # แก้ไขลิงก์เสื้อให้ตรงตามสเปก CDN ของ Premier League
                     shirt_suffix = "_1" if p[4] == 1 else ""
                     shirt_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{t_code}{shirt_suffix}-66.webp"
                     
@@ -307,7 +332,7 @@ with tab1:
                     <div class="pitch-row">{render_fpl_cards(starting_fwd)}</div>
                 </div>
                 <div class="fpl-bench-wrapper">
-                    <div class="fpl-bench-title">🪑 ตัวสำรอง (Bench)</div>
+                    <div style="text-align:center; font-weight:700; color:#fff; margin-bottom:8px;">🪑 ตัวสำรอง (Bench)</div>
                     <div class="pitch-row">{render_fpl_cards(bench_players)}</div>
                 </div>
             </div>
@@ -315,7 +340,7 @@ with tab1:
             st.markdown(pitch_html, unsafe_allow_html=True)
 
 # ==========================================
-# แท็บที่ 2: ระบบแนะนำการเปลี่ยนตัว
+# แท็บที่ 2: ระบบแนะนำการเปลี่ยนตัว (Transfer Cards)
 # ==========================================
 with tab2:
     team_presets = {"ทีมของฉัน (ID: 6255553)": "6255553", "กรอก Team ID อื่นๆ...": ""}
@@ -329,7 +354,7 @@ with tab2:
         if not team_id:
             st.warning("⚠️ กรุณาระบุรหัสทีม")
         else:
-            with st.spinner("กำลังวิเคราะห์..."):
+            with st.spinner("กำลังวิเคราะห์ตลาดนักเตะ..."):
                 try:
                     entry_res = requests.get(f"https://fantasy.premierleague.com/api/entry/{team_id}/")
                     manager_name, team_name = "Manager", "Club"
@@ -363,27 +388,55 @@ with tab2:
                                     
                                     xp_gain = float(p_in[6]) - float(p_out[6])
                                     if xp_gain > 0:
+                                        t_out_code = team_code_map.get(p_out[3], 1)
+                                        t_in_code = team_code_map.get(p_in[3], 1)
+                                        suf_out = "_1" if p_out[4] == 1 else ""
+                                        suf_in = "_1" if p_in[4] == 1 else ""
+                                        
                                         suggestions.append({
-                                            "🔴 ขายออก": f"{p_out[1]} {p_out[2]}",
-                                            "🟢 ซื้อเข้า": f"{p_in[1]} {p_in[2]}",
-                                            "ราคา (£m)": p_in[5] / 10,
-                                            "📈 xP เพิ่มขึ้น": round(xp_gain, 2),
-                                            "⭐ xP ใหม่": float(p_in[6])
+                                            "out_name": f"{p_out[1]} {p_out[2]}",
+                                            "out_cost": p_out[5] / 10,
+                                            "out_xp": float(p_out[6]),
+                                            "out_shirt": f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{t_out_code}{suf_out}-66.webp",
+                                            "in_name": f"{p_in[1]} {p_in[2]}",
+                                            "in_cost": p_in[5] / 10,
+                                            "in_xp": float(p_in[6]),
+                                            "in_shirt": f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{t_in_code}{suf_in}-66.webp",
+                                            "xp_gain": round(xp_gain, 2)
                                         })
                         
-                        suggestions.sort(key=lambda x: x["📈 xP เพิ่มขึ้น"], reverse=True)
+                        suggestions.sort(key=lambda x: x["xp_gain"], reverse=True)
                         
                         st.markdown(f'<div style="background: linear-gradient(135deg, #2b0035 0%, #1c0024 100%); border-left: 4px solid #00ff87; border-radius: 10px; padding: 14px 20px; margin: 15px 0 25px 0;"><div style="font-size:1.25rem; font-weight:700; color:#00ff87;">🛡️ {team_name}</div><div style="font-size:0.95rem; color:#dcdcdc; margin-top:4px;">👤 ผู้จัดการ: <b>{manager_name}</b> | 💰 งบในคลัง: <b>£{bank/10:.1f}m</b> | 📅 สัปดาห์: <b>Gameweek {current_gw}</b></div></div>', unsafe_allow_html=True)
                         
                         if not suggestions:
                             st.info("ทีมของคุณอยู่ในสภาพสมบูรณ์แบบ")
                         else:
-                            st.subheader("🔄 5 ดีลการย้ายตัวที่คุ้มค่าที่สุด")
-                            df_styled = pd.DataFrame(suggestions[:5]).style.format({
-                                "ราคา (£m)": "{:.1f}",
-                                "📈 xP เพิ่มขึ้น": "{:.2f}",
-                                "⭐ xP ใหม่": "{:.2f}"
-                            }).highlight_max(subset=["📈 xP เพิ่มขึ้น"], color="#005a2b")
-                            st.dataframe(df_styled, use_container_width=True, hide_index=True)
+                            st.subheader("🔄 5 ดีลการย้ายตัวที่คุ้มค่าที่สุด (Recommended Transfers)")
+                            deals_html = ""
+                            for s in suggestions[:5]:
+                                deals_html += f'''
+                                <div class="deal-card">
+                                    <div class="deal-player-side">
+                                        <img src="{s['out_shirt']}" class="deal-shirt">
+                                        <div>
+                                            <div style="font-size:0.75rem; color:#e90052; font-weight:700;">🔴 ขายออก (OUT)</div>
+                                            <div style="font-weight:600; font-size:0.95rem;">{s['out_name']}</div>
+                                            <div style="font-size:0.8rem; color:#a0a0a0;">£{s['out_cost']:.1f}m | xP: {s['out_xp']:.1f}</div>
+                                        </div>
+                                    </div>
+                                    <div class="deal-arrow">➔</div>
+                                    <div class="deal-player-side">
+                                        <img src="{s['in_shirt']}" class="deal-shirt">
+                                        <div>
+                                            <div style="font-size:0.75rem; color:#00ff87; font-weight:700;">🟢 ซื้อเข้า (IN)</div>
+                                            <div style="font-weight:600; font-size:0.95rem;">{s['in_name']}</div>
+                                            <div style="font-size:0.8rem; color:#a0a0a0;">£{s['in_cost']:.1f}m | xP: {s['in_xp']:.1f}</div>
+                                        </div>
+                                    </div>
+                                    <div class="deal-gain">+{s['xp_gain']:.2f} xP</div>
+                                </div>
+                                '''
+                            st.markdown(deals_html, unsafe_allow_html=True)
                 except Exception as e:
                     st.error(f"เกิดข้อผิดพลาด: {e}")
