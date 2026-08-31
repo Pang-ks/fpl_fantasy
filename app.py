@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. ปรับแต่ง CSS ถอดแบบธีม Premier League Match Hub
+# 2. ปรับแต่ง CSS สไตล์ Official Premier League + ผืนสนามฟุตบอล (Pitch Design)
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
@@ -21,13 +21,12 @@ st.markdown("""
         font-family: 'Kanit', sans-serif;
     }
 
-    /* พื้นหลังหลักธีม Premier League Dark */
     .stApp {
         background-color: #15001c;
         color: #ffffff;
     }
 
-    /* แถบหัวเว็บ Official Top Navigation Bar */
+    /* แถบหัวเว็บ Nav Bar */
     .pl-nav {
         background: #38003c;
         padding: 16px 28px;
@@ -42,7 +41,6 @@ st.markdown("""
         font-size: 1.6rem;
         font-weight: 700;
         color: #00ff87;
-        letter-spacing: 0.5px;
     }
     .pl-nav-tag {
         background: #e90052;
@@ -53,48 +51,89 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* การ์ดสไตล์ Premier League Match Block */
-    .pl-card {
+    /* ผืนสนามฟุตบอล (Tactical Pitch) */
+    .football-pitch {
+        background: radial-gradient(circle, #0e5c2f 0%, #083b1d 100%);
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 30px 15px;
+        margin-top: 20px;
+        position: relative;
+        box-shadow: inset 0 0 50px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    /* แถวการยืนตำแหน่งในสนาม */
+    .pitch-row {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    /* การ์ดนักเตะในสนาม */
+    .player-card {
+        background: rgba(36, 0, 44, 0.88);
+        border: 1px solid #00ff87;
+        border-radius: 10px;
+        padding: 8px 12px;
+        text-align: center;
+        min-width: 110px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+    }
+    .player-card-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #ffffff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+    }
+    .player-card-stat {
+        font-size: 0.75rem;
+        color: #00ff87;
+        margin-top: 2px;
+    }
+
+    /* ม้านั่งสำรอง */
+    .bench-container {
         background: #24002c;
         border: 1px solid #3c004a;
-        border-radius: 14px;
-        padding: 20px;
-        margin-bottom: 18px;
-        transition: transform 0.2s ease, border-color 0.2s ease;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 15px;
     }
-    .pl-card:hover {
-        border-color: #7c0085;
+    .bench-row {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .bench-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        padding: 6px 10px;
+        text-align: center;
+        min-width: 100px;
     }
 
-    /* กล่องรายละเอียดผู้จัดการทีม */
-    .pl-manager-box {
-        background: linear-gradient(135deg, #2b0035 0%, #1c0024 100%);
-        border-left: 4px solid #00ff87;
-        border-radius: 10px;
-        padding: 14px 20px;
-        margin: 15px 0 25px 0;
-    }
-
-    /* ปุ่มกดสไตล์ PL */
+    /* ปุ่มและ Metrics */
     div.stButton > button {
         background: #00ff87 !important;
         color: #38003c !important;
         font-weight: 700 !important;
-        font-size: 1rem !important;
-        border: none !important;
         border-radius: 8px !important;
         padding: 10px 24px !important;
         width: 100%;
-        transition: all 0.2s ease !important;
+        border: none !important;
     }
     div.stButton > button:hover {
         background: #02e077 !important;
         color: #000000 !important;
-        transform: translateY(-1px);
         box-shadow: 0 4px 15px rgba(0, 255, 135, 0.35) !important;
     }
-
-    /* ปรับแต่ง Metrics */
     div[data-testid="stMetric"] {
         background: #24002c;
         border: 1px solid #3c004a;
@@ -103,12 +142,11 @@ st.markdown("""
     }
     div[data-testid="stMetricLabel"] {
         color: #00ff87 !important;
-        font-size: 0.9rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# แถบ Header บาร์บน
+# แถบ Header
 st.markdown("""
 <div class="pl-nav">
     <div class="pl-nav-logo">🦁 PREMIER LEAGUE <span style="color:#ffffff; font-weight:400; font-size:1.1rem;">| AI Optimizer</span></div>
@@ -116,7 +154,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 3. โหลดข้อมูลนักเตะ
+# 3. โหลดข้อมูล
 @st.cache_data
 def load_data():
     conn = sqlite3.connect('fpl_data.db')
@@ -129,11 +167,10 @@ def load_data():
 all_players = load_data()
 active_players = [p for p in all_players if float(p[6]) > 0]
 
-# 4. แท็บหลัก
 tab1, tab2 = st.tabs(["🚀 วางแผนจัดทีม (Squad Builder)", "🔄 ตลาดซื้อขายนักเตะ (Transfer Hub)"])
 
 # ==========================================
-# แท็บที่ 1: จัดทีมใหม่
+# แท็บที่ 1: วางแผนจัดทีม + ผืนสนามจำลองตำแหน่ง
 # ==========================================
 with tab1:
     col_ctrl1, col_ctrl2 = st.columns([1, 1])
@@ -143,7 +180,7 @@ with tab1:
         max_players_per_team = st.number_input("โควตาสูงสุดต่อนักเตะ 1 สโมสร", min_value=1, max_value=3, value=3)
 
     if st.button("ประมวลผลจัด 11 ตัวจริงที่ดีที่สุด (Optimise XI)"):
-        with st.spinner("กำลังวิเคราะห์ความน่าจะเป็นของคะแนน..."):
+        with st.spinner("กำลังวิเคราะห์และจัดแผนผังการยืนตำแหน่ง..."):
             prob = pulp.LpProblem("FPL", pulp.LpMaximize)
             squad = {p[0]: pulp.LpVariable(f"sq_{p[0]}", cat='Binary') for p in active_players}
             lineup = {p[0]: pulp.LpVariable(f"li_{p[0]}", cat='Binary') for p in active_players}
@@ -173,37 +210,82 @@ with tab1:
                 
             prob.solve()
             
-            pos_name = {1: 'GK', 2: 'DEF', 3: 'MID', 4: 'FWD'}
-            first_11, bench = [], []
+            # แยกกลุ่มตำแหน่งสำหรับผังสนาม
+            starting_gk, starting_def, starting_mid, starting_fwd = [], [], [], []
+            bench_players = []
             total_cost, total_xp = 0, 0
             
             for p in active_players:
                 if pulp.value(squad[p[0]]) == 1:
-                    is_cap = " 👑" if pulp.value(cap[p[0]]) == 1 else ""
-                    player_data = {"ตำแหน่ง": pos_name[p[4]], "นักเตะ": f"{p[1]} {p[2]}{is_cap}", "ราคา (£m)": p[5]/10, "xP": float(p[6])}
+                    is_c = pulp.value(cap[p[0]]) == 1
                     total_cost += p[5]
+                    
+                    p_info = {
+                        "name": f"{p[1]} {p[2]}",
+                        "cost": p[5] / 10,
+                        "xp": float(p[6]),
+                        "is_cap": is_c,
+                        "pos": p[4]
+                    }
+                    
                     if pulp.value(lineup[p[0]]) == 1:
-                        first_11.append(player_data)
-                        total_xp += float(p[6]) * (2 if is_cap else 1)
+                        total_xp += float(p[6]) * (2 if is_c else 1)
+                        if p[4] == 1: starting_gk.append(p_info)
+                        elif p[4] == 2: starting_def.append(p_info)
+                        elif p[4] == 3: starting_mid.append(p_info)
+                        elif p[4] == 4: starting_fwd.append(p_info)
                     else:
-                        bench.append(player_data)
-                        
+                        bench_players.append(p_info)
+            
+            formation_str = f"{len(starting_def)}-{len(starting_mid)}-{len(starting_fwd)}"
+            
             st.write("")
             col1, col2, col3 = st.columns(3)
             col1.metric("💰 งบประมาณรวม", f"£{total_cost/10:.1f}m", f"เหลือ £{(max_budget*10 - total_cost)/10:.1f}m")
             col2.metric("⭐ xP คาดหวังรวม", f"{total_xp:.2f}")
-            col3.metric("⚽ แผนการเล่น", f"{sum(1 for p in first_11 if p['ตำแหน่ง']=='DEF')}-{sum(1 for p in first_11 if p['ตำแหน่ง']=='MID')}-{sum(1 for p in first_11 if p['ตำแหน่ง']=='FWD')}")
+            col3.metric("⚽ แผนการยืนตำแหน่ง", formation_str)
             
-            st.write("")
-            col_table1, col_table2 = st.columns(2)
-            with col_table1:
-                st.subheader("🟢 11 ตัวจริง (Starting XI)")
-                df_11 = pd.DataFrame(first_11).style.format({"ราคา (£m)": "{:.1f}", "xP": "{:.2f}"})
-                st.dataframe(df_11, use_container_width=True, hide_index=True)
-            with col_table2:
-                st.subheader("🪑 ม้านั่งสำรอง (Bench)")
-                df_b = pd.DataFrame(bench).style.format({"ราคา (£m)": "{:.1f}", "xP": "{:.2f}"})
-                st.dataframe(df_b, use_container_width=True, hide_index=True)
+            # ฟังก์ชันช่วยสร้าง HTML การ์ดนักเตะ
+            def render_player_cards(players_list):
+                cards = ""
+                for p in players_list:
+                    cap_tag = " <span style='color:#ffe600;'>👑</span>" if p["is_cap"] else ""
+                    cards += f"""
+                    <div class="player-card">
+                        <div class="player-card-name">{p['name']}{cap_tag}</div>
+                        <div class="player-card-stat">£{p['cost']:.1f}m | xP: {p['xp']:.1f}</div>
+                    </div>
+                    """
+                return cards
+
+            # แสดงสนามฟุตบอลจำลองผังการยืนตำแหน่ง (Tactical Pitch)
+            st.markdown("### 🏟️ ผังการยืนตำแหน่ง 11 ตัวจริง (Tactical Lineup)")
+            st.markdown(f"""
+            <div class="football-pitch">
+                <div class="pitch-row">{render_player_cards(starting_gk)}</div>
+                <div class="pitch-row">{render_player_cards(starting_def)}</div>
+                <div class="pitch-row">{render_player_cards(starting_mid)}</div>
+                <div class="pitch-row">{render_player_cards(starting_fwd)}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # ม้านั่งสำรอง
+            st.markdown("### 🪑 ม้านั่งสำรอง (Bench)")
+            bench_cards = ""
+            pos_labels = {1: 'GK', 2: 'DEF', 3: 'MID', 4: 'FWD'}
+            for p in bench_players:
+                bench_cards += f"""
+                <div class="bench-card">
+                    <div style="font-size:0.75rem; color:#00ff87;">{pos_labels[p['pos']]}</div>
+                    <div class="player-card-name">{p['name']}</div>
+                    <div style="font-size:0.75rem; color:#dcdcdc;">£{p['cost']:.1f}m | xP: {p['xp']:.1f}</div>
+                </div>
+                """
+            st.markdown(f"""
+            <div class="bench-container">
+                <div class="bench-row">{bench_cards}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 # ==========================================
 # แท็บที่ 2: ระบบแนะนำการเปลี่ยนตัว
@@ -273,7 +355,7 @@ with tab2:
                         suggestions.sort(key=lambda x: x["📈 xP เพิ่มขึ้น"], reverse=True)
                         
                         st.markdown(f"""
-                        <div class="pl-manager-box">
+                        <div style="background: linear-gradient(135deg, #2b0035 0%, #1c0024 100%); border-left: 4px solid #00ff87; border-radius: 10px; padding: 14px 20px; margin: 15px 0 25px 0;">
                             <div style="font-size:1.25rem; font-weight:700; color:#00ff87;">🛡️ {team_name}</div>
                             <div style="font-size:0.95rem; color:#dcdcdc; margin-top:4px;">
                                 👤 ผู้จัดการ: <b>{manager_name}</b> | 💰 งบคงเหลือในคลัง: <b>£{bank/10:.1f}m</b> | 📅 สัปดาห์แข่งขัน: <b>Gameweek {current_gw}</b>
