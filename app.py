@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. ปรับแต่ง CSS สไตล์ Official Premier League + ผืนสนามฟุตบอล (Pitch Design)
+# 2. CSS สไตล์พรีเมียร์ลีก + ผืนสนามหญ้า
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
@@ -26,7 +26,7 @@ st.markdown("""
         color: #ffffff;
     }
 
-    /* แถบหัวเว็บ Nav Bar */
+    /* Top Nav */
     .pl-nav {
         background: #38003c;
         padding: 16px 28px;
@@ -51,47 +51,48 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* ผืนสนามฟุตบอล (Tactical Pitch) */
+    /* สนามฟุตบอล */
     .football-pitch {
         background: radial-gradient(circle, #0e5c2f 0%, #083b1d 100%);
-        border: 3px solid rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.25);
         border-radius: 16px;
-        padding: 30px 15px;
+        padding: 30px 10px;
         margin-top: 20px;
-        position: relative;
-        box-shadow: inset 0 0 50px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.5);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        box-shadow: inset 0 0 50px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.5);
     }
 
-    /* แถวการยืนตำแหน่งในสนาม */
+    /* แถวของแต่ละตำแหน่ง */
     .pitch-row {
         display: flex;
         justify-content: space-around;
         align-items: center;
-        margin-bottom: 24px;
+        width: 100%;
     }
 
     /* การ์ดนักเตะในสนาม */
     .player-card {
-        background: rgba(36, 0, 44, 0.88);
+        background: rgba(36, 0, 44, 0.9);
         border: 1px solid #00ff87;
         border-radius: 10px;
-        padding: 8px 12px;
+        padding: 8px 10px;
         text-align: center;
-        min-width: 110px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-        backdrop-filter: blur(4px);
+        min-width: 100px;
+        max-width: 140px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
     .player-card-name {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 600;
         color: #ffffff;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 120px;
     }
     .player-card-stat {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         color: #00ff87;
         margin-top: 2px;
     }
@@ -101,25 +102,25 @@ st.markdown("""
         background: #24002c;
         border: 1px solid #3c004a;
         border-radius: 12px;
-        padding: 15px;
+        padding: 16px;
         margin-top: 15px;
     }
     .bench-row {
         display: flex;
         justify-content: space-around;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 12px;
     }
     .bench-card {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 8px;
-        padding: 6px 10px;
+        padding: 8px 12px;
         text-align: center;
-        min-width: 100px;
+        min-width: 110px;
     }
 
-    /* ปุ่มและ Metrics */
+    /* ปุ่มกด */
     div.stButton > button {
         background: #00ff87 !important;
         color: #38003c !important;
@@ -146,13 +147,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# แถบ Header
-st.markdown("""
-<div class="pl-nav">
-    <div class="pl-nav-logo">🦁 PREMIER LEAGUE <span style="color:#ffffff; font-weight:400; font-size:1.1rem;">| AI Optimizer</span></div>
-    <div class="pl-nav-tag">Official Match Engine</div>
-</div>
-""", unsafe_allow_html=True)
+# Top Banner
+st.markdown("""<div class="pl-nav"><div class="pl-nav-logo">🦁 PREMIER LEAGUE <span style="color:#ffffff; font-weight:400; font-size:1.1rem;">| AI Optimizer</span></div><div class="pl-nav-tag">Official Match Engine</div></div>""", unsafe_allow_html=True)
 
 # 3. โหลดข้อมูล
 @st.cache_data
@@ -170,7 +166,7 @@ active_players = [p for p in all_players if float(p[6]) > 0]
 tab1, tab2 = st.tabs(["🚀 วางแผนจัดทีม (Squad Builder)", "🔄 ตลาดซื้อขายนักเตะ (Transfer Hub)"])
 
 # ==========================================
-# แท็บที่ 1: วางแผนจัดทีม + ผืนสนามจำลองตำแหน่ง
+# แท็บที่ 1: วางแผนจัดทีม + สนาม Tactical
 # ==========================================
 with tab1:
     col_ctrl1, col_ctrl2 = st.columns([1, 1])
@@ -180,7 +176,7 @@ with tab1:
         max_players_per_team = st.number_input("โควตาสูงสุดต่อนักเตะ 1 สโมสร", min_value=1, max_value=3, value=3)
 
     if st.button("ประมวลผลจัด 11 ตัวจริงที่ดีที่สุด (Optimise XI)"):
-        with st.spinner("กำลังวิเคราะห์และจัดแผนผังการยืนตำแหน่ง..."):
+        with st.spinner("กำลังวิเคราะห์และจัดตำแหน่งแผนการเล่น..."):
             prob = pulp.LpProblem("FPL", pulp.LpMaximize)
             squad = {p[0]: pulp.LpVariable(f"sq_{p[0]}", cat='Binary') for p in active_players}
             lineup = {p[0]: pulp.LpVariable(f"li_{p[0]}", cat='Binary') for p in active_players}
@@ -210,7 +206,6 @@ with tab1:
                 
             prob.solve()
             
-            # แยกกลุ่มตำแหน่งสำหรับผังสนาม
             starting_gk, starting_def, starting_mid, starting_fwd = [], [], [], []
             bench_players = []
             total_cost, total_xp = 0, 0
@@ -245,47 +240,32 @@ with tab1:
             col2.metric("⭐ xP คาดหวังรวม", f"{total_xp:.2f}")
             col3.metric("⚽ แผนการยืนตำแหน่ง", formation_str)
             
-            # ฟังก์ชันช่วยสร้าง HTML การ์ดนักเตะ
-            def render_player_cards(players_list):
-                cards = ""
-                for p in players_list:
-                    cap_tag = " <span style='color:#ffe600;'>👑</span>" if p["is_cap"] else ""
-                    cards += f"""
-                    <div class="player-card">
-                        <div class="player-card-name">{p['name']}{cap_tag}</div>
-                        <div class="player-card-stat">£{p['cost']:.1f}m | xP: {p['xp']:.1f}</div>
-                    </div>
-                    """
-                return cards
+            def build_cards_html(players):
+                html = ""
+                for p in players:
+                    cap_tag = " 👑" if p["is_cap"] else ""
+                    html += f'<div class="player-card"><div class="player-card-name">{p["name"]}{cap_tag}</div><div class="player-card-stat">£{p["cost"]:.1f}m | xP {p["xp"]:.1f}</div></div>'
+                return html
 
-            # แสดงสนามฟุตบอลจำลองผังการยืนตำแหน่ง (Tactical Pitch)
             st.markdown("### 🏟️ ผังการยืนตำแหน่ง 11 ตัวจริง (Tactical Lineup)")
-            st.markdown(f"""
-            <div class="football-pitch">
-                <div class="pitch-row">{render_player_cards(starting_gk)}</div>
-                <div class="pitch-row">{render_player_cards(starting_def)}</div>
-                <div class="pitch-row">{render_player_cards(starting_mid)}</div>
-                <div class="pitch-row">{render_player_cards(starting_fwd)}</div>
-            </div>
-            """, unsafe_allow_html=True)
             
-            # ม้านั่งสำรอง
+            pitch_html = f'''
+            <div class="football-pitch">
+                <div class="pitch-row">{build_cards_html(starting_gk)}</div>
+                <div class="pitch-row">{build_cards_html(starting_def)}</div>
+                <div class="pitch-row">{build_cards_html(starting_mid)}</div>
+                <div class="pitch-row">{build_cards_html(starting_fwd)}</div>
+            </div>
+            '''
+            st.markdown(pitch_html, unsafe_allow_html=True)
+            
             st.markdown("### 🪑 ม้านั่งสำรอง (Bench)")
-            bench_cards = ""
+            bench_html_items = ""
             pos_labels = {1: 'GK', 2: 'DEF', 3: 'MID', 4: 'FWD'}
             for p in bench_players:
-                bench_cards += f"""
-                <div class="bench-card">
-                    <div style="font-size:0.75rem; color:#00ff87;">{pos_labels[p['pos']]}</div>
-                    <div class="player-card-name">{p['name']}</div>
-                    <div style="font-size:0.75rem; color:#dcdcdc;">£{p['cost']:.1f}m | xP: {p['xp']:.1f}</div>
-                </div>
-                """
-            st.markdown(f"""
-            <div class="bench-container">
-                <div class="bench-row">{bench_cards}</div>
-            </div>
-            """, unsafe_allow_html=True)
+                bench_html_items += f'<div class="bench-card"><div style="font-size:0.75rem; color:#00ff87;">{pos_labels[p["pos"]]}</div><div class="player-card-name">{p["name"]}</div><div style="font-size:0.75rem; color:#dcdcdc;">£{p["cost"]:.1f}m | xP {p["xp"]:.1f}</div></div>'
+            
+            st.markdown(f'<div class="bench-container"><div class="bench-row">{bench_html_items}</div></div>', unsafe_allow_html=True)
 
 # ==========================================
 # แท็บที่ 2: ระบบแนะนำการเปลี่ยนตัว
@@ -354,14 +334,7 @@ with tab2:
                         
                         suggestions.sort(key=lambda x: x["📈 xP เพิ่มขึ้น"], reverse=True)
                         
-                        st.markdown(f"""
-                        <div style="background: linear-gradient(135deg, #2b0035 0%, #1c0024 100%); border-left: 4px solid #00ff87; border-radius: 10px; padding: 14px 20px; margin: 15px 0 25px 0;">
-                            <div style="font-size:1.25rem; font-weight:700; color:#00ff87;">🛡️ {team_name}</div>
-                            <div style="font-size:0.95rem; color:#dcdcdc; margin-top:4px;">
-                                👤 ผู้จัดการ: <b>{manager_name}</b> | 💰 งบคงเหลือในคลัง: <b>£{bank/10:.1f}m</b> | 📅 สัปดาห์แข่งขัน: <b>Gameweek {current_gw}</b>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        st.markdown(f'<div style="background: linear-gradient(135deg, #2b0035 0%, #1c0024 100%); border-left: 4px solid #00ff87; border-radius: 10px; padding: 14px 20px; margin: 15px 0 25px 0;"><div style="font-size:1.25rem; font-weight:700; color:#00ff87;">🛡️ {team_name}</div><div style="font-size:0.95rem; color:#dcdcdc; margin-top:4px;">👤 ผู้จัดการ: <b>{manager_name}</b> | 💰 งบคงเหลือในคลัง: <b>£{bank/10:.1f}m</b> | 📅 สัปดาห์แข่งขัน: <b>Gameweek {current_gw}</b></div></div>', unsafe_allow_html=True)
                         
                         if not suggestions:
                             st.info("ทีมของคุณอยู่ในสภาพสมบูรณ์แบบ ไม่มีตัวเลือกการเปลี่ยนตัวที่คุ้มค่าในสัปดาห์นี้")
