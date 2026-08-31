@@ -11,7 +11,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# สไตล์ CSS ถอดแบบ Official FPL
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
@@ -25,7 +24,6 @@ st.markdown("""
         color: #ffffff;
     }
 
-    /* แถบหัวเว็บ Nav Bar */
     .pl-nav {
         background: #38003c;
         padding: 14px 24px;
@@ -41,7 +39,6 @@ st.markdown("""
         color: #00ff87;
     }
 
-    /* ผืนสนาม FPL */
     .fpl-pitch-wrapper {
         background: #00a651;
         border-radius: 16px;
@@ -82,7 +79,6 @@ st.markdown("""
         width: 100%;
     }
 
-    /* การ์ดนักเตะบนสนาม */
     .fpl-player-container {
         display: flex;
         flex-direction: column;
@@ -148,7 +144,6 @@ st.markdown("""
         margin: 15px 12px 0 12px;
     }
 
-    /* การ์ดแนะนำการเปลี่ยนตัว (Transfer Cards) */
     .deal-card {
         background: #1e0024;
         border: 1px solid #3c004a;
@@ -340,7 +335,7 @@ with tab1:
             st.markdown(pitch_html, unsafe_allow_html=True)
 
 # ==========================================
-# แท็บที่ 2: ระบบแนะนำการเปลี่ยนตัว (Transfer Cards)
+# แท็บที่ 2: ระบบแนะนำการเปลี่ยนตัว (กรองไม่ให้นักเตะซื้อเข้าซ้ำกัน)
 # ==========================================
 with tab2:
     team_presets = {"ทีมของฉัน (ID: 6255553)": "6255553", "กรอก Team ID อื่นๆ...": ""}
@@ -376,7 +371,7 @@ with tab2:
                         bank = team_data['entry_history']['bank']
                         
                         my_team = [p for p in all_players if p[0] in my_picks]
-                        suggestions = []
+                        all_combinations = []
                         
                         for p_out in my_team:
                             current_teams = [p[3] for p in my_team if p[0] != p_out[0]]
@@ -393,7 +388,9 @@ with tab2:
                                         suf_out = "_1" if p_out[4] == 1 else ""
                                         suf_in = "_1" if p_in[4] == 1 else ""
                                         
-                                        suggestions.append({
+                                        all_combinations.append({
+                                            "out_id": p_out[0],
+                                            "in_id": p_in[0],
                                             "out_name": f"{p_out[1]} {p_out[2]}",
                                             "out_cost": p_out[5] / 10,
                                             "out_xp": float(p_out[6]),
@@ -405,16 +402,28 @@ with tab2:
                                             "xp_gain": round(xp_gain, 2)
                                         })
                         
-                        suggestions.sort(key=lambda x: x["xp_gain"], reverse=True)
+                        # จัดเรียงตามกำไร xP จากมากไปน้อย
+                        all_combinations.sort(key=lambda x: x["xp_gain"], reverse=True)
+                        
+                        # กรองเพื่อไม่ให้แนะนำนักเตะเป้าหมาย (IN) ซ้ำคนเดิม
+                        unique_suggestions = []
+                        seen_in_players = set()
+                        
+                        for deal in all_combinations:
+                            if deal["in_id"] not in seen_in_players:
+                                unique_suggestions.append(deal)
+                                seen_in_players.add(deal["in_id"])
+                            if len(unique_suggestions) == 5:
+                                break
                         
                         st.markdown(f'<div style="background: linear-gradient(135deg, #2b0035 0%, #1c0024 100%); border-left: 4px solid #00ff87; border-radius: 10px; padding: 14px 20px; margin: 15px 0 25px 0;"><div style="font-size:1.25rem; font-weight:700; color:#00ff87;">🛡️ {team_name}</div><div style="font-size:0.95rem; color:#dcdcdc; margin-top:4px;">👤 ผู้จัดการ: <b>{manager_name}</b> | 💰 งบในคลัง: <b>£{bank/10:.1f}m</b> | 📅 สัปดาห์: <b>Gameweek {current_gw}</b></div></div>', unsafe_allow_html=True)
                         
-                        if not suggestions:
+                        if not unique_suggestions:
                             st.info("ทีมของคุณอยู่ในสภาพสมบูรณ์แบบ")
                         else:
                             st.subheader("🔄 5 ดีลการย้ายตัวที่คุ้มค่าที่สุด (Recommended Transfers)")
                             deals_html = ""
-                            for s in suggestions[:5]:
+                            for s in unique_suggestions:
                                 deals_html += f'''
                                 <div class="deal-card">
                                     <div class="deal-player-side">
