@@ -193,7 +193,7 @@ def get_team_code_map():
 
 team_code_map = get_team_code_map()
 
-# โหลดข้อมูลนักเตะ (ใช้ 7 คอลัมน์เดิมที่มีในฐานข้อมูล)
+# โหลดข้อมูลนักเตะ
 @st.cache_data
 def load_data():
     conn = sqlite3.connect('fpl_data.db')
@@ -258,11 +258,13 @@ with tab1:
                     is_c = pulp.value(cap[p[0]]) == 1
                     total_cost += p[5]
                     t_code = team_code_map.get(p[3], 1)
-                    shirt_type = "1" if p[4] == 1 else "0"
-                    shirt_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{t_code}_{shirt_type}-66.webp"
+                    
+                    # แก้ไขลิงก์เสื้อให้ตรงตามสเปก CDN ของ Premier League
+                    shirt_suffix = "_1" if p[4] == 1 else ""
+                    shirt_url = f"https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{t_code}{shirt_suffix}-66.webp"
                     
                     p_info = {
-                        "name": p[2], # ใช้นามสกุล/ชื่อหลักเป็นชื่อบนเสื้อ
+                        "name": p[2],
                         "cost": p[5] / 10,
                         "xp": float(p[6]),
                         "is_cap": is_c,
